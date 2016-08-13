@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * 手动自动可以滚动
  *
- * @author ryze
+ * @author chenliguan
  * @since 1.0  2016/07/17
  */
 public abstract class AutoLoopSwitchBaseView extends RelativeLayout implements ViewPager.OnPageChangeListener {

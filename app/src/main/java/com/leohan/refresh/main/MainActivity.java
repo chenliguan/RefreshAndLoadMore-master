@@ -1,5 +1,6 @@
 package com.leohan.refresh.main;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -11,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.leohan.refresh.R;
+import com.leohan.refresh.main_navi.MainNaviActivity;
 import com.leohan.refresh.viewpager.AutoSwitchAdapter;
 
 import java.util.ArrayList;
@@ -54,12 +56,12 @@ public class MainActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finish();
+                startActivity(new Intent(MainActivity.this, MainNaviActivity.class));
             }
         });
 
         //进入页面刷新
-        swipeRefreshLayout.setColorSchemeResources(R.color.blueStatus);
+        swipeRefreshLayout.setColorSchemeResources(R.color.red);
         swipeRefreshLayout.post(new Runnable() {
             @Override
             public void run() {
@@ -88,10 +90,13 @@ public class MainActivity extends AppCompatActivity {
     private void init() {
         adapter = new RecyclerViewAdapter(this, data, autoItemClickListener);
 
-        //滑动上啦刷新
+        //设置默认布局管理器
         final LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+//        LinearLayoutManager layoutManager = new LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL,false);
         recyclerView.setLayoutManager(layoutManager);
+
         recyclerView.setAdapter(adapter);
+        //滑动上啦刷新
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
@@ -144,11 +149,11 @@ public class MainActivity extends AppCompatActivity {
      */
     private AutoSwitchAdapter.OnItemClickListener autoItemClickListener =
             new AutoSwitchAdapter.OnItemClickListener() {
-        @Override
-        public void OnItemClick(View view, int position) {
-            Log.e("position", "position:" + position);
-        }
-    };
+                @Override
+                public void OnItemClick(View view, int position) {
+                    Log.e("position", "position:" + position);
+                }
+            };
 
     /**
      * 初始化数据
@@ -174,5 +179,4 @@ public class MainActivity extends AppCompatActivity {
         swipeRefreshLayout.setRefreshing(false);
         adapter.notifyItemRemoved(adapter.getItemCount());
     }
-
 }

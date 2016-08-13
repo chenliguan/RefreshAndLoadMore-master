@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 /**
  * 订阅页面轮播图适配器
  *
- * @author ryze
+ * @author chenliguan
  * @since 1.0  2016/07/17
  */
 public abstract class AutoLoopSwitchBaseAdapter extends PagerAdapter {

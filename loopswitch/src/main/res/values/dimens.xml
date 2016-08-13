@@ -4,4 +4,5 @@
   <dimen name="loopswitch_title_margin_left">15dp</dimen>
   <dimen name="loopswitch_title_margin_bottom">15dp</dimen>
   <dimen name="loopswitch_pageshow_height">10dp</dimen>
+  <dimen name="space">10dp</dimen>
 </resources>

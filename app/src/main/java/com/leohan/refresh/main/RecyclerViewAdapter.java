@@ -1,6 +1,8 @@
 package com.leohan.refresh.main;
 
 import android.content.Context;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.Adapter;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.LayoutInflater;
@@ -9,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.leohan.refresh.R;
+import com.leohan.refresh.navi.NumberedAdapter;
 import com.leohan.refresh.viewpager.AutoSwitchAdapter;
 import com.leohan.refresh.viewpager.AutoSwitchView;
 import com.leohan.refresh.viewpager.LoopModel;
@@ -18,9 +21,13 @@ import java.util.List;
 
 public class RecyclerViewAdapter extends Adapter<ViewHolder> {
 
-    private static final int TYPE_ITEM = 0;
-    private static final int TYPE_FOOTER = 1;
-    private static final int TYPE_HEAD = 2;
+    private static final int TYPE_HEAD = 0;
+    private static final int TYPE_NAVI = 1;
+    private static final int TYPE_ITEM = 5;
+    private static final int TYPE_FOOT = 9;
+
+    private static final int ITEM_COUNT = 3;
+
     private Context context;
     private List data;
 
@@ -29,7 +36,6 @@ public class RecyclerViewAdapter extends Adapter<ViewHolder> {
      */
     public interface OnItemClickListener {
         void onItemClick(View view, int position);
-
         void onItemLongClick(View view, int position);
     }
 
@@ -51,15 +57,17 @@ public class RecyclerViewAdapter extends Adapter<ViewHolder> {
 
     @Override
     public int getItemCount() {
-        return data.size() == 0 ? 0 : data.size() + 2;
+        return data.size() == 0 ? 0 : data.size() + ITEM_COUNT;
     }
 
     @Override
     public int getItemViewType(int position) {
         if (0 == position) {
             return TYPE_HEAD;
+        } else if (1 == position) {
+            return TYPE_NAVI;
         } else if (position + 1 == getItemCount()) {
-            return TYPE_FOOTER;
+            return TYPE_FOOT;
         } else {
             return TYPE_ITEM;
         }
@@ -67,28 +75,35 @@ public class RecyclerViewAdapter extends Adapter<ViewHolder> {
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        if (viewType == TYPE_ITEM) {
-            View view = LayoutInflater.from(context).inflate(R.layout.item_base, parent,
-                    false);
-            return new ItemViewHolder(view);
-        } else if (viewType == TYPE_FOOTER) {
-            View view = LayoutInflater.from(context).inflate(R.layout.item_foot, parent,
-                    false);
-            return new FootViewHolder(view);
-        } else if (viewType == TYPE_HEAD) {
-            View view = LayoutInflater.from(context).inflate(R.layout.item_head, parent,
-                    false);
+        View view;
+        if (viewType == TYPE_HEAD) {
+            view = LayoutInflater.from(context).inflate(R.layout.view_head, parent, false);
             return new HeadViewHolder(view);
+        } else if (viewType == TYPE_NAVI) {
+            view = LayoutInflater.from(context).inflate(R.layout.view_navi, parent, false);
+            return new NaviViewHolder(view);
+        } else if (viewType == TYPE_ITEM) {
+            view = LayoutInflater.from(context).inflate(R.layout.view_item, parent, false);
+            return new ItemViewHolder(view);
+        } else if (viewType == TYPE_FOOT) {
+            view = LayoutInflater.from(context).inflate(R.layout.view_foot, parent, false);
+            return new FootViewHolder(view);
         }
         return null;
     }
 
-
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
-        //设置item的点击事件
-        if (holder instanceof ItemViewHolder) {
-            //holder.tv.setText(data.get(position));
+        if (holder instanceof HeadViewHolder) {
+            AutoSwitchView autoSwitchView = ((HeadViewHolder) holder).autoSwitchView;
+            //初始化ViewPager
+            initViewPager(autoSwitchView);
+            autoSwitchView.setTag(position);//设置位置Tag
+        } else if (holder instanceof NaviViewHolder) {
+            //初始化横滑栏
+            initNavi((NaviViewHolder) holder);
+        } else if (holder instanceof ItemViewHolder) {
+            //设置item的点击事件
             if (onItemClickListener != null) {
                 holder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -107,9 +122,24 @@ public class RecyclerViewAdapter extends Adapter<ViewHolder> {
                     }
                 });
             }
-        } else if (holder instanceof HeadViewHolder) {
-            initViewPager(((HeadViewHolder) holder).autoSwitchView);
-            ((HeadViewHolder) holder).autoSwitchView.setTag(position);//设置位置Tag
+        }
+    }
+
+    static class HeadViewHolder extends ViewHolder {
+        AutoSwitchView autoSwitchView;
+
+        public HeadViewHolder(View view) {
+            super(view);
+            autoSwitchView = (AutoSwitchView) view.findViewById(R.id.loopswitch);
+        }
+    }
+
+    static class NaviViewHolder extends ViewHolder {
+        RecyclerView recyclerView;
+
+        public NaviViewHolder(View view) {
+            super(view);
+            recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
         }
     }
 
@@ -128,50 +158,42 @@ public class RecyclerViewAdapter extends Adapter<ViewHolder> {
         }
     }
 
-    static class HeadViewHolder extends ViewHolder {
-        AutoSwitchView autoSwitchView;
-
-        public HeadViewHolder(View view) {
-            super(view);
-            autoSwitchView = (AutoSwitchView) view.findViewById(R.id.loopswitch);
-        }
-    }
-
     /**
      * 初始化滑动页
      */
     private void initViewPager(AutoSwitchView autoSwitchView) {
-        AutoSwitchAdapter mAdapter;
-
         List<LoopModel> datas = new ArrayList<>();
-        LoopModel model = null;
-        LoopModel mode2 = null;
-        LoopModel mode3 = null;
-        LoopModel mode4 = null;
-        LoopModel mode5 = null;
-        model = new LoopModel("第一张", R.mipmap.loop_1);
+        LoopModel model = new LoopModel("第一张", R.mipmap.loop_1);
         datas.add(model);
-        mode2 = new LoopModel("第二张", R.mipmap.loop_2);
+        LoopModel mode2 = new LoopModel("第二张", R.mipmap.loop_2);
         datas.add(mode2);
-        mode3 = new LoopModel("第三张", R.mipmap.loop_3);
+        LoopModel mode3 = new LoopModel("第三张", R.mipmap.loop_3);
         datas.add(mode3);
-        mode4 = new LoopModel("第四张", R.mipmap.loop_4);
+        LoopModel mode4 = new LoopModel("第四张", R.mipmap.loop_4);
         datas.add(mode4);
-        mode5 = new LoopModel("第五张", R.mipmap.loop_4);
+        LoopModel mode5 = new LoopModel("第五张", R.mipmap.loop_4);
         datas.add(mode5);
 
-        List indicate = new ArrayList<>();
-        indicate.add(R.mipmap.ic_indicator);
-        indicate.add(R.mipmap.ic_indicator_c);
-
-        mAdapter = new AutoSwitchAdapter(context, datas);
+        AutoSwitchAdapter mAdapter = new AutoSwitchAdapter(context, datas);
         //条目点击事件监听
         mAdapter.setOnItemClickListener(autoItemClickListener);
         autoSwitchView.setAdapter(mAdapter);
 
+        List indicate = new ArrayList<>();
+        indicate.add(R.mipmap.ic_indicator);
+        indicate.add(R.mipmap.ic_indicator_c);
         //初始化指示器
         autoSwitchView.initIndicate(indicate);
         mAdapter.notifyDataSetChanged();
     }
 
+    /**
+     * 初始化横滑栏
+     */
+    private void initNavi(NaviViewHolder holder) {
+        RecyclerView recyclerView = holder.recyclerView;
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
+        recyclerView.setAdapter(new NumberedAdapter(30));
+    }
 }
